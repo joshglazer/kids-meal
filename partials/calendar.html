@@ -1,59 +1,66 @@
 <div id="calendar-container">
   <h3>Weekly Menu Planner</h3>
-  <div class="calendar-grid">
-    <div class="calendar-day">
-      <div class="day-header">Monday</div>
-      <div class="day-content" id="monday-content">
-        <textarea placeholder="Enter meal plan..."></textarea>
-      </div>
-    </div>
-    <div class="calendar-day">
-      <div class="day-header">Tuesday</div>
-      <div class="day-content" id="tuesday-content">
-        <textarea placeholder="Enter meal plan..."></textarea>
-      </div>
-    </div>
-    <div class="calendar-day">
-      <div class="day-header">Wednesday</div>
-      <div class="day-content" id="wednesday-content">
-        <textarea placeholder="Enter meal plan..."></textarea>
-      </div>
-    </div>
-    <div class="calendar-day">
-      <div class="day-header">Thursday</div>
-      <div class="day-content" id="thursday-content">
-        <textarea placeholder="Enter meal plan..."></textarea>
-      </div>
-    </div>
-    <div class="calendar-day">
-      <div class="day-header">Friday</div>
-      <div class="day-content" id="friday-content">
-        <textarea placeholder="Enter meal plan..."></textarea>
-      </div>
-    </div>
-  </div>
+  <div class="calendar-grid" id="calendar-grid"></div>
+
+  <h3>Menu</h3>
+  <div class="food-cards-grid" id="food-cards-grid"></div>
 </div>
 
 <script>
-  // Load saved calendar data
-  const days = ["monday", "tuesday", "wednesday", "thursday", "friday"];
+  // Calendar configuration
+  const days = [
+    { id: "monday", name: "Monday" },
+    { id: "tuesday", name: "Tuesday" },
+    { id: "wednesday", name: "Wednesday" },
+    { id: "thursday", name: "Thursday" },
+    { id: "friday", name: "Friday" },
+  ];
+
+  // Food items configuration
+  const foodItems = [
+    { icon: "🥚", name: "Hard Boiled Egg" },
+    { icon: "🍗", name: "Chicken Nuggets" },
+    { icon: "🍕", name: "Pizza" },
+    { icon: "🌭", name: "Hot Dog" },
+  ];
+
+  // Generate calendar days
+  const calendarGrid = document.getElementById("calendar-grid");
   days.forEach((day) => {
-    const savedContent = localStorage.getItem(`meal-${day}`);
-    if (savedContent) {
-      const textarea = document.querySelector(`#${day}-content textarea`);
-      if (textarea) {
-        textarea.value = savedContent;
-      }
+    const dayDiv = document.createElement("div");
+    dayDiv.className = "calendar-day";
+    dayDiv.innerHTML = `
+      <div class="day-header">${day.name}</div>
+      <div class="day-content" id="${day.id}-content">
+        <textarea placeholder="Enter meal plan..."></textarea>
+      </div>
+    `;
+    calendarGrid.appendChild(dayDiv);
+
+    // Load saved content
+    const savedContent = localStorage.getItem(`meal-${day.id}`);
+    const textarea = dayDiv.querySelector("textarea");
+    if (savedContent && textarea) {
+      textarea.value = savedContent;
+    }
+
+    // Auto-save on input
+    if (textarea) {
+      textarea.addEventListener("input", () => {
+        localStorage.setItem(`meal-${day.id}`, textarea.value);
+      });
     }
   });
 
-  // Auto-save calendar data as user types
-  days.forEach((day) => {
-    const textarea = document.querySelector(`#${day}-content textarea`);
-    if (textarea) {
-      textarea.addEventListener("input", () => {
-        localStorage.setItem(`meal-${day}`, textarea.value);
-      });
-    }
+  // Generate food cards
+  const foodCardsGrid = document.getElementById("food-cards-grid");
+  foodItems.forEach((food) => {
+    const cardDiv = document.createElement("div");
+    cardDiv.className = "food-card";
+    cardDiv.innerHTML = `
+      <div class="food-icon">${food.icon}</div>
+      <div class="food-name">${food.name}</div>
+    `;
+    foodCardsGrid.appendChild(cardDiv);
   });
 </script>
