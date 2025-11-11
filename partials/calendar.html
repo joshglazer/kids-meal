@@ -29,26 +29,22 @@
   days.forEach((day) => {
     const dayDiv = document.createElement("div");
     dayDiv.className = "calendar-day";
+    dayDiv.dataset.dayId = day.id;
     dayDiv.innerHTML = `
       <div class="day-header">${day.name}</div>
       <div class="day-content" id="${day.id}-content">
-        <textarea placeholder="Enter meal plan..."></textarea>
+        <div class="food-drop-zone" data-day="${day.id}">
+          <div class="drop-placeholder">Drag food here</div>
+        </div>
       </div>
     `;
     calendarGrid.appendChild(dayDiv);
 
-    // Load saved content
-    const savedContent = localStorage.getItem(`meal-${day.id}`);
-    const textarea = dayDiv.querySelector("textarea");
-    if (savedContent && textarea) {
-      textarea.value = savedContent;
-    }
-
-    // Auto-save on input
-    if (textarea) {
-      textarea.addEventListener("input", () => {
-        localStorage.setItem(`meal-${day.id}`, textarea.value);
-      });
+    // Load saved food selection
+    const savedFood = localStorage.getItem(`food-${day.id}`);
+    if (savedFood) {
+      const foodData = JSON.parse(savedFood);
+      displayFoodInDay(day.id, foodData);
     }
   });
 
@@ -57,10 +53,188 @@
   foodItems.forEach((food) => {
     const cardDiv = document.createElement("div");
     cardDiv.className = "food-card";
+    cardDiv.draggable = true;
+    cardDiv.dataset.foodIcon = food.icon;
+    cardDiv.dataset.foodName = food.name;
     cardDiv.innerHTML = `
       <div class="food-icon">${food.icon}</div>
       <div class="food-name">${food.name}</div>
     `;
     foodCardsGrid.appendChild(cardDiv);
+
+    // Desktop drag events
+    cardDiv.addEventListener("dragstart", handleDragStart);
+    cardDiv.addEventListener("dragend", handleDragEnd);
+
+    // Touch events for tablets
+    cardDiv.addEventListener("touchstart", handleTouchStart, {
+      passive: false,
+    });
+    cardDiv.addEventListener("touchmove", handleTouchMove, { passive: false });
+    cardDiv.addEventListener("touchend", handleTouchEnd);
   });
+
+  // Setup drop zones
+  document.querySelectorAll(".food-drop-zone").forEach((zone) => {
+    zone.addEventListener("dragover", handleDragOver);
+    zone.addEventListener("dragleave", handleDragLeave);
+    zone.addEventListener("drop", handleDrop);
+  });
+
+  // Drag and Drop handlers
+  let draggedFood = null;
+
+  function handleDragStart(e) {
+    draggedFood = {
+      icon: this.dataset.foodIcon,
+      name: this.dataset.foodName,
+    };
+    this.style.opacity = "0.5";
+    e.dataTransfer.effectAllowed = "copy";
+  }
+
+  function handleDragEnd(e) {
+    this.style.opacity = "1";
+  }
+
+  function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+    this.classList.add("drag-over");
+  }
+
+  function handleDragLeave(e) {
+    this.classList.remove("drag-over");
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    this.classList.remove("drag-over");
+
+    if (draggedFood) {
+      const dayId = this.dataset.day;
+      displayFoodInDay(dayId, draggedFood);
+      localStorage.setItem(`food-${dayId}`, JSON.stringify(draggedFood));
+    }
+  }
+
+  // Touch handlers for tablets
+  let touchedFood = null;
+  let touchClone = null;
+
+  function handleTouchStart(e) {
+    e.preventDefault();
+    touchedFood = {
+      icon: this.dataset.foodIcon,
+      name: this.dataset.foodName,
+      element: this,
+    };
+
+    // Create a visual clone for dragging
+    touchClone = this.cloneNode(true);
+    touchClone.style.position = "fixed";
+    touchClone.style.pointerEvents = "none";
+    touchClone.style.opacity = "0.8";
+    touchClone.style.zIndex = "1000";
+    touchClone.style.width = this.offsetWidth + "px";
+    document.body.appendChild(touchClone);
+
+    const touch = e.touches[0];
+    touchClone.style.left = touch.clientX - this.offsetWidth / 2 + "px";
+    touchClone.style.top = touch.clientY - this.offsetHeight / 2 + "px";
+
+    this.style.opacity = "0.5";
+  }
+
+  function handleTouchMove(e) {
+    e.preventDefault();
+    if (!touchClone) return;
+
+    const touch = e.touches[0];
+    touchClone.style.left = touch.clientX - touchClone.offsetWidth / 2 + "px";
+    touchClone.style.top = touch.clientY - touchClone.offsetHeight / 2 + "px";
+
+    // Highlight drop zones
+    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+    document.querySelectorAll(".food-drop-zone").forEach((zone) => {
+      zone.classList.remove("drag-over");
+    });
+    if (element && element.classList.contains("food-drop-zone")) {
+      element.classList.add("drag-over");
+    } else {
+      const dropZone = element?.closest(".food-drop-zone");
+      if (dropZone) {
+        dropZone.classList.add("drag-over");
+      }
+    }
+  }
+
+  function handleTouchEnd(e) {
+    e.preventDefault();
+    if (touchedFood) {
+      touchedFood.element.style.opacity = "1";
+    }
+
+    if (touchClone) {
+      const touch = e.changedTouches[0];
+      const element = document.elementFromPoint(touch.clientX, touch.clientY);
+      const dropZone = element?.classList.contains("food-drop-zone")
+        ? element
+        : element?.closest(".food-drop-zone");
+
+      if (dropZone && touchedFood) {
+        const dayId = dropZone.dataset.day;
+        displayFoodInDay(dayId, {
+          icon: touchedFood.icon,
+          name: touchedFood.name,
+        });
+        localStorage.setItem(
+          `food-${dayId}`,
+          JSON.stringify({ icon: touchedFood.icon, name: touchedFood.name })
+        );
+      }
+
+      document.querySelectorAll(".food-drop-zone").forEach((zone) => {
+        zone.classList.remove("drag-over");
+      });
+
+      touchClone.remove();
+      touchClone = null;
+    }
+
+    touchedFood = null;
+  }
+
+  // Display food in a day
+  function displayFoodInDay(dayId, foodData) {
+    const dropZone = document.querySelector(
+      `.food-drop-zone[data-day="${dayId}"]`
+    );
+    if (dropZone) {
+      dropZone.innerHTML = `
+        <div class="selected-food">
+          <div class="selected-food-icon">${foodData.icon}</div>
+          <div class="selected-food-name">${foodData.name}</div>
+          <button class="remove-food" data-day="${dayId}">✕</button>
+        </div>
+      `;
+
+      // Add remove button handler
+      const removeBtn = dropZone.querySelector(".remove-food");
+      removeBtn.addEventListener("click", () => {
+        removeFood(dayId);
+      });
+    }
+  }
+
+  // Remove food from a day
+  function removeFood(dayId) {
+    const dropZone = document.querySelector(
+      `.food-drop-zone[data-day="${dayId}"]`
+    );
+    if (dropZone) {
+      dropZone.innerHTML = '<div class="drop-placeholder">Drag food here</div>';
+      localStorage.removeItem(`food-${dayId}`);
+    }
+  }
 </script>

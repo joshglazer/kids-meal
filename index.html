@@ -58,19 +58,64 @@
       .day-content {
         padding: 0.5rem;
       }
-      .day-content textarea {
-        width: 100%;
-        min-height: 120px;
-        border: none;
-        resize: vertical;
-        font-family: inherit;
-        font-size: 0.9rem;
-        padding: 0.5rem;
-        box-sizing: border-box;
+      .food-drop-zone {
+        min-height: 100px;
+        border: 2px dashed #ccc;
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fafafa;
+        transition: all 0.2s;
+        position: relative;
       }
-      .day-content textarea:focus {
-        outline: none;
-        background: #f9f9f9;
+      .food-drop-zone.drag-over {
+        border-color: #3498db;
+        background: #e8f4fd;
+      }
+      .drop-placeholder {
+        color: #999;
+        font-size: 0.9rem;
+        text-align: center;
+        padding: 1rem;
+      }
+      .selected-food {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0.5rem;
+        width: 100%;
+      }
+      .selected-food-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.25rem;
+      }
+      .selected-food-name {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 0.9rem;
+        text-align: center;
+      }
+      .remove-food {
+        position: absolute;
+        top: 0.25rem;
+        right: 0.25rem;
+        background: #e74c3c;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        font-size: 1rem;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .remove-food:hover {
+        background: #c0392b;
       }
       .food-cards-grid {
         display: grid;
@@ -85,13 +130,18 @@
         padding: 1.5rem;
         text-align: center;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        transition: transform 0.2s, box-shadow 0.2s;
-        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+        cursor: grab;
+        user-select: none;
+        touch-action: none;
       }
       .food-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         border-color: #3498db;
+      }
+      .food-card:active {
+        cursor: grabbing;
       }
       .food-icon {
         font-size: 3rem;
