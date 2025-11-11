@@ -53,7 +53,6 @@
   foodItems.forEach((food) => {
     const cardDiv = document.createElement("div");
     cardDiv.className = "food-card";
-    cardDiv.draggable = true;
     cardDiv.dataset.foodIcon = food.icon;
     cardDiv.dataset.foodName = food.name;
     cardDiv.innerHTML = `
@@ -61,149 +60,106 @@
       <div class="food-name">${food.name}</div>
     `;
     foodCardsGrid.appendChild(cardDiv);
-
-    // Desktop drag events
-    cardDiv.addEventListener("dragstart", handleDragStart);
-    cardDiv.addEventListener("dragend", handleDragEnd);
-
-    // Touch events for tablets
-    cardDiv.addEventListener("touchstart", handleTouchStart, {
-      passive: false,
-    });
-    cardDiv.addEventListener("touchmove", handleTouchMove, { passive: false });
-    cardDiv.addEventListener("touchend", handleTouchEnd);
   });
 
-  // Setup drop zones
+  // Track which zone is currently being hovered
+  let currentHoverZone = null;
+  let dragCheckInterval = null;
+
+  // Initialize SortableJS for each drop zone
   document.querySelectorAll(".food-drop-zone").forEach((zone) => {
-    zone.addEventListener("dragover", handleDragOver);
-    zone.addEventListener("dragleave", handleDragLeave);
-    zone.addEventListener("drop", handleDrop);
+    new Sortable(zone, {
+      group: {
+        name: "food",
+        pull: false, // Don't allow items to be pulled from drop zones
+        put: true, // Allow items to be put into drop zones
+      },
+      animation: 150,
+      sort: false, // Don't allow sorting within drop zones
+      onAdd: function (evt) {
+        const dayId = evt.to.dataset.day;
+        const foodIcon = evt.item.dataset.foodIcon;
+        const foodName = evt.item.dataset.foodName;
+
+        // Remove the dragged item (we'll display it properly)
+        evt.item.remove();
+
+        // Only allow one food per day - replace if exists
+        const foodData = { icon: foodIcon, name: foodName };
+        displayFoodInDay(dayId, foodData);
+        localStorage.setItem(`food-${dayId}`, JSON.stringify(foodData));
+      },
+    });
   });
 
-  // Drag and Drop handlers
-  let draggedFood = null;
+  // Initialize SortableJS for food cards grid (source)
+  new Sortable(foodCardsGrid, {
+    group: {
+      name: "food",
+      pull: "clone", // Clone items when dragging
+      put: false, // Don't allow items to be put back
+    },
+    animation: 150,
+    sort: false, // Don't allow reordering of food cards
+    onStart: function (evt) {
+      // When drag starts, poll to check which drop zone is being hovered
+      dragCheckInterval = setInterval(() => {
+        const draggedElement =
+          document.querySelector(".sortable-drag") ||
+          document.querySelector(".sortable-ghost");
 
-  function handleDragStart(e) {
-    draggedFood = {
-      icon: this.dataset.foodIcon,
-      name: this.dataset.foodName,
-    };
-    this.style.opacity = "0.5";
-    e.dataTransfer.effectAllowed = "copy";
-  }
+        if (draggedElement) {
+          const rect = draggedElement.getBoundingClientRect();
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
 
-  function handleDragEnd(e) {
-    this.style.opacity = "1";
-  }
+          // Find which drop zone is under the cursor
+          const elementBelow = document.elementFromPoint(centerX, centerY);
+          const dropZone = elementBelow?.closest(".food-drop-zone");
+          console.log(elementBelow);
 
-  function handleDragOver(e) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "copy";
-    this.classList.add("drag-over");
-  }
+          // Update highlighting
+          if (dropZone !== currentHoverZone) {
+            // Remove highlight from previous zone
+            if (currentHoverZone) {
+              currentHoverZone.classList.remove("drag-over");
+            }
+            // Add highlight to new zone
+            if (dropZone) {
+              dropZone.classList.add("drag-over");
+            }
+            currentHoverZone = dropZone;
+          }
+        }
+      }, 50); // Check every 50ms
+    },
+    onMove: function (evt) {
+      // Remove the 'hover' class from all potential target lists/elements first
+      // This ensures only the currently hovered element has the class
+      document.querySelectorAll(".food-drop-zone").forEach((list) => {
+        list.classList.remove("drag-over");
+      });
 
-  function handleDragLeave(e) {
-    this.classList.remove("drag-over");
-  }
+      // Add the 'hover-target' class to the element being hovered over
+      evt.to.classList.add("drag-over");
 
-  function handleDrop(e) {
-    e.preventDefault();
-    this.classList.remove("drag-over");
-
-    if (draggedFood) {
-      const dayId = this.dataset.day;
-      displayFoodInDay(dayId, draggedFood);
-      localStorage.setItem(`food-${dayId}`, JSON.stringify(draggedFood));
-    }
-  }
-
-  // Touch handlers for tablets
-  let touchedFood = null;
-  let touchClone = null;
-
-  function handleTouchStart(e) {
-    e.preventDefault();
-    touchedFood = {
-      icon: this.dataset.foodIcon,
-      name: this.dataset.foodName,
-      element: this,
-    };
-
-    // Create a visual clone for dragging
-    touchClone = this.cloneNode(true);
-    touchClone.style.position = "fixed";
-    touchClone.style.pointerEvents = "none";
-    touchClone.style.opacity = "0.8";
-    touchClone.style.zIndex = "1000";
-    touchClone.style.width = this.offsetWidth + "px";
-    document.body.appendChild(touchClone);
-
-    const touch = e.touches[0];
-    touchClone.style.left = touch.clientX - this.offsetWidth / 2 + "px";
-    touchClone.style.top = touch.clientY - this.offsetHeight / 2 + "px";
-
-    this.style.opacity = "0.5";
-  }
-
-  function handleTouchMove(e) {
-    e.preventDefault();
-    if (!touchClone) return;
-
-    const touch = e.touches[0];
-    touchClone.style.left = touch.clientX - touchClone.offsetWidth / 2 + "px";
-    touchClone.style.top = touch.clientY - touchClone.offsetHeight / 2 + "px";
-
-    // Highlight drop zones
-    const element = document.elementFromPoint(touch.clientX, touch.clientY);
-    document.querySelectorAll(".food-drop-zone").forEach((zone) => {
-      zone.classList.remove("drag-over");
-    });
-    if (element && element.classList.contains("food-drop-zone")) {
-      element.classList.add("drag-over");
-    } else {
-      const dropZone = element?.closest(".food-drop-zone");
-      if (dropZone) {
-        dropZone.classList.add("drag-over");
-      }
-    }
-  }
-
-  function handleTouchEnd(e) {
-    e.preventDefault();
-    if (touchedFood) {
-      touchedFood.element.style.opacity = "1";
-    }
-
-    if (touchClone) {
-      const touch = e.changedTouches[0];
-      const element = document.elementFromPoint(touch.clientX, touch.clientY);
-      const dropZone = element?.classList.contains("food-drop-zone")
-        ? element
-        : element?.closest(".food-drop-zone");
-
-      if (dropZone && touchedFood) {
-        const dayId = dropZone.dataset.day;
-        displayFoodInDay(dayId, {
-          icon: touchedFood.icon,
-          name: touchedFood.name,
-        });
-        localStorage.setItem(
-          `food-${dayId}`,
-          JSON.stringify({ icon: touchedFood.icon, name: touchedFood.name })
-        );
+      // Return true to allow the move, false to prevent it
+      return true;
+    },
+    onEnd: function (evt) {
+      // Stop polling and clean up
+      if (dragCheckInterval) {
+        clearInterval(dragCheckInterval);
+        dragCheckInterval = null;
       }
 
+      // Clean up any remaining highlights when drag ends
       document.querySelectorAll(".food-drop-zone").forEach((zone) => {
         zone.classList.remove("drag-over");
       });
-
-      touchClone.remove();
-      touchClone = null;
-    }
-
-    touchedFood = null;
-  }
+      currentHoverZone = null;
+    },
+  });
 
   // Display food in a day
   function displayFoodInDay(dayId, foodData) {

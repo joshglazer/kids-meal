@@ -1,1 +1,1 @@
-// Kids Meal Planner - Main JavaScript
+// Kids Menu Planner - Main JavaScript
