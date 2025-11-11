@@ -1,0 +1,15 @@
+<h2>Hi there 👋</h2>
+<p>What’s your name?</p>
+
+<input type="text" id="name-input" placeholder="Type your name..." />
+<button id="save-name">Save</button>
+
+<script>
+  document.querySelector("#save-name").addEventListener("click", () => {
+    const name = document.querySelector("#name-input").value.trim();
+    if (name) {
+      localStorage.setItem("username", name);
+      htmx.ajax("GET", "partials/greet.html", "#content");
+    }
+  });
+</script>
