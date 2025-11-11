@@ -9,12 +9,16 @@
       body {
         font-family: system-ui, sans-serif;
         max-width: 1200px;
-        margin: 3rem auto;
+        margin: 2rem auto;
         padding: 1rem;
-        background: #fdfdfd;
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        min-height: 100vh;
       }
       h1 {
-        color: #2c3e50;
+        color: #ff6b6b;
+        font-size: 2.5rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        text-align: center;
       }
       button {
         padding: 0.5rem 1rem;
@@ -32,8 +36,10 @@
         margin: 2rem 0;
       }
       #calendar-container h3 {
-        color: #2c3e50;
+        color: #4834df;
         margin-bottom: 1rem;
+        font-size: 1.8rem;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
       }
       .calendar-grid {
         display: grid;
@@ -43,40 +49,64 @@
       }
       .calendar-day {
         background: white;
-        border: 2px solid #e0e0e0;
-        border-radius: 0.5rem;
+        border: 3px solid #ffd93d;
+        border-radius: 1rem;
         overflow: hidden;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        transition: transform 0.2s;
+      }
+      .calendar-day:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
       }
       .day-header {
-        background: #3498db;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 0.75rem;
-        font-weight: 600;
+        padding: 1rem;
+        font-weight: 700;
         text-align: center;
+        font-size: 1.1rem;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+      }
+      .calendar-day:nth-child(1) .day-header {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      }
+      .calendar-day:nth-child(2) .day-header {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      }
+      .calendar-day:nth-child(3) .day-header {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+      }
+      .calendar-day:nth-child(4) .day-header {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      }
+      .calendar-day:nth-child(5) .day-header {
+        background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
       }
       .day-content {
         padding: 0.5rem;
       }
       .food-drop-zone {
         min-height: 100px;
-        border: 2px dashed #ccc;
-        border-radius: 0.5rem;
+        border: 3px dashed #ff6b6b;
+        border-radius: 1rem;
         margin-bottom: 0.5rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #fafafa;
-        transition: all 0.2s;
+        background: #fff9e6;
+        transition: all 0.3s;
         position: relative;
       }
       .food-drop-zone.drag-over {
-        border-color: #3498db;
-        background: #e8f4fd;
+        border-color: #4cd137;
+        background: #d1ffbd;
+        transform: scale(1.02);
       }
       .drop-placeholder {
-        color: #999;
-        font-size: 0.9rem;
+        color: #ff6b6b;
+        font-size: 1rem;
+        font-weight: 600;
         text-align: center;
         padding: 1rem;
       }
@@ -92,30 +122,34 @@
         margin-bottom: 0.25rem;
       }
       .selected-food-name {
-        font-weight: 600;
-        color: #2c3e50;
-        font-size: 0.9rem;
+        font-weight: 700;
+        color: #4834df;
+        font-size: 1rem;
         text-align: center;
       }
       .remove-food {
         position: absolute;
         top: 0.25rem;
         right: 0.25rem;
-        background: #e74c3c;
+        background: #ff6b6b;
         color: white;
         border: none;
         border-radius: 50%;
-        width: 24px;
-        height: 24px;
+        width: 28px;
+        height: 28px;
         cursor: pointer;
-        font-size: 1rem;
+        font-size: 1.1rem;
+        font-weight: bold;
         line-height: 1;
         display: flex;
         align-items: center;
         justify-content: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        transition: all 0.2s;
       }
       .remove-food:hover {
-        background: #c0392b;
+        background: #ee5a52;
+        transform: scale(1.1);
       }
       .food-cards-grid {
         display: grid;
@@ -124,33 +158,50 @@
         margin-top: 1rem;
       }
       .food-card {
-        background: white;
-        border: 2px solid #e0e0e0;
-        border-radius: 0.5rem;
+        background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+        border: 3px solid #fdcb6e;
+        border-radius: 1rem;
         padding: 1.5rem;
         text-align: center;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
         cursor: grab;
         user-select: none;
         touch-action: none;
       }
+      .food-card:nth-child(1) {
+        background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+        border-color: #6c5ce7;
+      }
+      .food-card:nth-child(2) {
+        background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+        border-color: #e84393;
+      }
+      .food-card:nth-child(3) {
+        background: linear-gradient(135deg, #55efc4 0%, #00b894 100%);
+        border-color: #00b894;
+      }
+      .food-card:nth-child(4) {
+        background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+        border-color: #fdcb6e;
+      }
       .food-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        border-color: #3498db;
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
       }
       .food-card:active {
         cursor: grabbing;
       }
       .food-icon {
-        font-size: 3rem;
+        font-size: 3.5rem;
         margin-bottom: 0.5rem;
+        filter: drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.2));
       }
       .food-name {
-        font-weight: 600;
-        color: #2c3e50;
-        font-size: 1rem;
+        font-weight: 700;
+        color: white;
+        font-size: 1.1rem;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
       }
       @media (max-width: 768px) {
         .calendar-grid {
