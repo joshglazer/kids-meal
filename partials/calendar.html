@@ -1,0 +1,59 @@
+<div id="calendar-container">
+  <h3>Weekly Menu Planner</h3>
+  <div class="calendar-grid">
+    <div class="calendar-day">
+      <div class="day-header">Monday</div>
+      <div class="day-content" id="monday-content">
+        <textarea placeholder="Enter meal plan..."></textarea>
+      </div>
+    </div>
+    <div class="calendar-day">
+      <div class="day-header">Tuesday</div>
+      <div class="day-content" id="tuesday-content">
+        <textarea placeholder="Enter meal plan..."></textarea>
+      </div>
+    </div>
+    <div class="calendar-day">
+      <div class="day-header">Wednesday</div>
+      <div class="day-content" id="wednesday-content">
+        <textarea placeholder="Enter meal plan..."></textarea>
+      </div>
+    </div>
+    <div class="calendar-day">
+      <div class="day-header">Thursday</div>
+      <div class="day-content" id="thursday-content">
+        <textarea placeholder="Enter meal plan..."></textarea>
+      </div>
+    </div>
+    <div class="calendar-day">
+      <div class="day-header">Friday</div>
+      <div class="day-content" id="friday-content">
+        <textarea placeholder="Enter meal plan..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Load saved calendar data
+  const days = ["monday", "tuesday", "wednesday", "thursday", "friday"];
+  days.forEach((day) => {
+    const savedContent = localStorage.getItem(`meal-${day}`);
+    if (savedContent) {
+      const textarea = document.querySelector(`#${day}-content textarea`);
+      if (textarea) {
+        textarea.value = savedContent;
+      }
+    }
+  });
+
+  // Auto-save calendar data as user types
+  days.forEach((day) => {
+    const textarea = document.querySelector(`#${day}-content textarea`);
+    if (textarea) {
+      textarea.addEventListener("input", () => {
+        localStorage.setItem(`meal-${day}`, textarea.value);
+      });
+    }
+  });
+</script>
