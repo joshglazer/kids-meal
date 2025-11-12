@@ -109,6 +109,16 @@
         transform: scale(1.02);
         box-shadow: 0 0 15px rgba(76, 209, 55, 0.5);
       }
+      .food-drop-zone.clickable {
+        cursor: pointer;
+        border-color: #4834df;
+        background: #e8e5ff;
+      }
+      .food-drop-zone.clickable:hover {
+        border-color: #4834df;
+        background: #d6d0ff;
+        transform: scale(1.02);
+      }
       .drop-placeholder {
         color: #ff6b6b;
         font-size: 1rem;
@@ -215,6 +225,23 @@
       }
       .food-card:active {
         cursor: grabbing;
+      }
+      .food-card.selected {
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: 0 0 0 4px #fff, 0 0 0 6px #4834df,
+          0 8px 16px rgba(0, 0, 0, 0.25);
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 4px #fff, 0 0 0 6px #4834df,
+            0 8px 16px rgba(0, 0, 0, 0.25);
+        }
+        50% {
+          box-shadow: 0 0 0 4px #fff, 0 0 0 8px #4834df,
+            0 8px 20px rgba(72, 52, 223, 0.4);
+        }
       }
       .food-icon {
         font-size: 3.5rem;

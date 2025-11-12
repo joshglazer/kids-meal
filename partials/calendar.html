@@ -66,6 +66,63 @@
     foodCardsGrid.appendChild(cardDiv);
   });
 
+  // Track selected food for click-to-add functionality
+  let selectedFood = null;
+
+  // Add click handlers to food cards
+  document.querySelectorAll(".food-card").forEach((card) => {
+    card.addEventListener("click", () => {
+      // Remove selected class from all cards
+      document.querySelectorAll(".food-card").forEach((c) => {
+        c.classList.remove("selected");
+      });
+
+      // If clicking the same card, deselect it
+      if (
+        selectedFood &&
+        selectedFood.icon === card.dataset.foodIcon &&
+        selectedFood.name === card.dataset.foodName
+      ) {
+        selectedFood = null;
+        // Remove clickable class from all drop zones
+        document.querySelectorAll(".food-drop-zone").forEach((zone) => {
+          zone.classList.remove("clickable");
+        });
+      } else {
+        // Select the new card
+        card.classList.add("selected");
+        selectedFood = {
+          icon: card.dataset.foodIcon,
+          name: card.dataset.foodName,
+        };
+        // Add clickable class to all drop zones
+        document.querySelectorAll(".food-drop-zone").forEach((zone) => {
+          zone.classList.add("clickable");
+        });
+      }
+    });
+  });
+
+  // Add click handlers to drop zones
+  document.querySelectorAll(".food-drop-zone").forEach((zone) => {
+    zone.addEventListener("click", () => {
+      if (selectedFood) {
+        const dayId = zone.dataset.day;
+        displayFoodInDay(dayId, selectedFood);
+        localStorage.setItem(`food-${dayId}`, JSON.stringify(selectedFood));
+
+        // Deselect the food card and remove clickable state
+        document.querySelectorAll(".food-card").forEach((c) => {
+          c.classList.remove("selected");
+        });
+        document.querySelectorAll(".food-drop-zone").forEach((z) => {
+          z.classList.remove("clickable");
+        });
+        selectedFood = null;
+      }
+    });
+  });
+
   // Track which zone is currently being hovered
   let currentHoverZone = null;
   let dragCheckInterval = null;
@@ -171,6 +228,7 @@
       `.food-drop-zone[data-day="${dayId}"]`
     );
     if (dropZone) {
+      dropZone.classList.remove("clickable");
       dropZone.innerHTML = `
         <div class="selected-food">
           <div class="selected-food-icon">${foodData.icon}</div>
@@ -181,7 +239,8 @@
 
       // Add remove button handler
       const removeBtn = dropZone.querySelector(".remove-food");
-      removeBtn.addEventListener("click", () => {
+      removeBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); // Prevent triggering the drop zone click handler
         removeFood(dayId);
       });
     }
@@ -195,6 +254,10 @@
     if (dropZone) {
       dropZone.innerHTML = '<div class="drop-placeholder">Drag food here</div>';
       localStorage.removeItem(`food-${dayId}`);
+      // If a food is currently selected, make this zone clickable again
+      if (selectedFood) {
+        dropZone.classList.add("clickable");
+      }
     }
   }
 </script>
